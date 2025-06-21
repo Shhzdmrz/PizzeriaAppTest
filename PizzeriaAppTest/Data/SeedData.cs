@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using PizzeriaAppTest.Common;
+using PizzeriaAppTest.Utilities;
 using PizzeriaAppTest.Models;
 
 namespace PizzeriaAppTest.Data

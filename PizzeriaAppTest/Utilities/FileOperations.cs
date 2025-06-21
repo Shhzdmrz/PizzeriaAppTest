@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace PizzeriaAppTest.Common
+namespace PizzeriaAppTest.Utilities
 {
     public static class FileOperations
     {
