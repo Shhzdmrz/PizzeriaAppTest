@@ -1,6 +1,9 @@
-﻿namespace PizzeriaAppTest.Models
+﻿using Newtonsoft.Json;
+using PizzeriaAppTest.Utilities;
+
+namespace PizzeriaAppTest.Models
 {
-    public class Order
+    public class OrderItem
     {
         public int OrderId { get; set; }
         public int ProductId { get; set; }
@@ -8,5 +11,93 @@
         public DateTime CreatedAt { get; set; }
         public DateTime? DeliveryAt { get; set; }
         public string? DeliveryAddress { get; set; }
+        static void ValidateOrdersFile()
+        {
+            if (!FileOperations.IsFileExist(FileOperations.OrdersConst))
+            {
+                FileOperations.InsertToJsonFile(FileOperations.OrdersConst);
+            }
+        }
+        static bool ValidateAnOrder(OrderItem orderItem)
+        {
+            ValidateOrdersFile();
+            if (orderItem == null)
+            {
+                return false;
+            }
+            if (orderItem.OrderId <= 0)
+            {
+                return false;
+            }
+            if (!Product.ValidateOrderProduct(orderItem) || !ProductIngredient.ValidateOrderProductIngredient(orderItem))
+            {
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(orderItem.DeliveryAddress))
+            {
+                return false;
+            }
+            if (orderItem.CreatedAt == default || orderItem.CreatedAt > DateTime.Now)
+            {
+                return false;
+            }
+            if (orderItem.DeliveryAt.HasValue && orderItem.DeliveryAt.Value < orderItem.CreatedAt)
+            {
+                return false;
+            }
+
+            return true;
+        }
+        public static bool SaveOrder(List<OrderItem> orderItems, List<OrderItem>? existingOrderItems = null)
+        {
+            foreach (var item in orderItems)
+            {
+                if (!ValidateAnOrder(item)) { return false; }
+            }
+
+            if (existingOrderItems is null)
+            {
+                string ordersString = JsonConvert.SerializeObject(orderItems);
+                FileOperations.AppendToJsonFile(FileOperations.OrdersConst, ordersString);
+            }
+            else
+            {
+                int? existingOrderId = orderItems.FirstOrDefault()?.OrderId;
+                if (existingOrderId.HasValue)
+                {
+                    existingOrderItems.RemoveAll(o => o.OrderId == existingOrderId.Value);
+                }
+
+                existingOrderItems.AddRange(orderItems);
+                string ordersString = JsonConvert.SerializeObject(existingOrderItems);
+                FileOperations.WriteToJsonFile(FileOperations.OrdersConst, ordersString);
+            }
+            
+            return true;
+        }
+        public static List<OrderItem> LoadOrders()
+        {
+            ValidateOrdersFile();
+            var ordersFile = FileOperations.FilePath(FileOperations.OrdersConst);
+            if (!FileOperations.IsFileExist(FileOperations.OrdersConst))
+            {
+                return new();
+            }
+            var orderData = File.ReadAllText(ordersFile);
+            if (string.IsNullOrWhiteSpace(orderData))
+            {
+                return new();
+            }
+            var orderList = JsonConvert.DeserializeObject<List<OrderItem>>(orderData);
+            return orderList ?? new();
+        }
+        public static List<OrderItem> LoadOrder(int orderId, List<OrderItem> orderList)
+        {
+            if (orderList == null || !orderList.Any())
+            {
+                return new();
+            }
+            return orderList.Where(o => o.OrderId == orderId).ToList();
+        }
     }
 }

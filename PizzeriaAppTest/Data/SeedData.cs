@@ -8,14 +8,14 @@ namespace PizzeriaAppTest.Data
     {
         public static void Load()
         {
-            if (!File.Exists(FileOperations.GetAbsoulteDataPath() + FileOperations.ProductFileConst))
+            if (!FileOperations.IsFileExist(FileOperations.ProductFileConst))
             {
                 Console.WriteLine("Seeding products data for app...");
                 var products = Product.LoadSeed();
                 var productsJson = JsonConvert.SerializeObject(products, Formatting.Indented);
                 FileOperations.InsertToJsonFile(FileOperations.ProductFileConst, productsJson);
             }
-            if (!File.Exists(FileOperations.GetAbsoulteDataPath() + FileOperations.IngredientFileConst))
+            if (!FileOperations.IsFileExist(FileOperations.IngredientFileConst))
             {
                 Console.WriteLine("Seeding ingredients for product data of app...");
                 var ingredients = ProductIngredient.LoadSeed();

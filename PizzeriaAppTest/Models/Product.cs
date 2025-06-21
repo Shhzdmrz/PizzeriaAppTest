@@ -1,4 +1,7 @@
-﻿namespace PizzeriaAppTest.Models
+﻿using Newtonsoft.Json;
+using PizzeriaAppTest.Utilities;
+
+namespace PizzeriaAppTest.Models
 {
     public class Product
     {
@@ -16,5 +19,46 @@
                 new Product { ProductId = 5, ProductName = "Supereme Pizza", Price = 34.00 }
             ];
         }
+        public static bool ValidateOrderProduct(OrderItem orderItem)
+        {
+            var productsFile = FileOperations.FilePath(FileOperations.ProductFileConst);
+            if (!FileOperations.IsFileExist(FileOperations.ProductFileConst))
+            {
+                return false;
+            }
+           
+            var productData = File.ReadAllText(productsFile);
+            if (string.IsNullOrWhiteSpace(productData))
+            {
+                return false;
+            }
+            var productList = JsonConvert.DeserializeObject<List<Product>>(productData);
+            if (productList == null || !productList.Any())
+            {
+                return false;
+            }
+            if (!productList.Any(p => p.ProductId == orderItem.ProductId))
+            {
+                return false;
+            }
+
+            return true;
+        }
+        public static List<Product> LoadProducts()
+        {
+            var productsFile = FileOperations.FilePath(FileOperations.ProductFileConst);
+            if (!FileOperations.IsFileExist(FileOperations.ProductFileConst))
+            {
+                return new();
+            }
+            var productString = File.ReadAllText(productsFile);
+            if (string.IsNullOrWhiteSpace(productString))
+            {
+                return new();
+            }
+            var products = JsonConvert.DeserializeObject<List<Product>>(productString);
+            return products ?? new();
+        }
+        public static double GetProductPrice(int productId, List<Product> products) => products.FirstOrDefault(f => f.ProductId == productId)?.Price ?? 0;
     }
 }
