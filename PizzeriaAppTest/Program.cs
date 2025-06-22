@@ -10,7 +10,6 @@ namespace PizzeriaAppTest
             InitializeApp();
             ShowMainMenu();
         }
-
         static void ShowMainMenu()
         {
             while (true)
@@ -136,7 +135,12 @@ namespace PizzeriaAppTest
         {
             Console.Clear();
             Console.Write("Enter Order ID to track: ");
-            int orderId = int.Parse(Console.ReadLine());
+            if (!int.TryParse(Console.ReadLine(), out int orderId))
+            {
+                Console.WriteLine("Invalid Order ID format!");
+                Console.ReadKey();
+                return;
+            }
 
             var existinOrders = OrderItem.LoadOrders();
             var order = existinOrders.Where(x => x.OrderId == orderId).ToList();
@@ -159,7 +163,13 @@ namespace PizzeriaAppTest
         {
             Console.Clear();
             Console.Write("Enter Order ID to update: ");
-            int orderId = int.Parse(Console.ReadLine());
+
+            if (!int.TryParse(Console.ReadLine(), out int orderId))
+            {
+                Console.WriteLine("Invalid Order ID format!");
+                Console.ReadKey();
+                return;
+            }
 
             // Load order from file
             var existinOrders = OrderItem.LoadOrders();
@@ -179,14 +189,24 @@ namespace PizzeriaAppTest
             }
 
             Console.Write("Enter Product ID to update: ");
-            int pid = int.Parse(Console.ReadLine());
-            var itemToUpdate = order.FirstOrDefault(x => x.ProductId == pid);
+            if (!int.TryParse(Console.ReadLine(), out int productId))
+            {
+                Console.WriteLine("Invalid Product ID format!");
+                Console.ReadKey();
+                return;
+            }
+            var itemToUpdate = order.FirstOrDefault(x => x.ProductId == productId);
 
             if (itemToUpdate != null)
             {
                 Console.Write("Enter new quantity: ");
-                itemToUpdate.Quantity = int.Parse(Console.ReadLine());
-
+                if (!int.TryParse(Console.ReadLine(), out int newQuantity) || newQuantity < 0)
+                {
+                    Console.WriteLine("Invalid quantity!");
+                    Console.ReadKey();
+                    return;
+                }
+                itemToUpdate.Quantity = newQuantity;
                 OrderItem.SaveOrder(order, existinOrders); // overwrite
                 Console.WriteLine("Order updated.");
             }
@@ -203,20 +223,49 @@ namespace PizzeriaAppTest
             Console.WriteLine("Create a New Order");
 
             Console.Write("Enter Order ID: ");
-            int orderId = int.Parse(Console.ReadLine());
+            if (!int.TryParse(Console.ReadLine(), out int orderId) || orderId <= 0)
+            {
+                Console.WriteLine("Invalid Order ID!");
+                Console.ReadKey();
+                return;
+            }
 
             Console.Write("Enter Delivery Address (optional): ");
             string? address = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(address))
+            {
+                address = "Default Address";
+            }
 
-            List<OrderItem> items = new List<OrderItem>();
-            string addMore;
+            Console.WriteLine("\nAvailable Products:");
+            var products = Product.LoadProducts();
+            foreach (var product in products)
+            {
+                Console.WriteLine($"ID: {product.ProductId} - {product.ProductName} (AED {product.Price:F2})");
+            }
+
+            List<OrderItem> items = [];
+            string addMore = "n";
             do
             {
                 Console.Write("Enter Product ID: ");
-                int productId = int.Parse(Console.ReadLine());
+                if (!int.TryParse(Console.ReadLine(), out int productId) || productId <= 0)
+                {
+                    Console.WriteLine("Invalid Product ID!");
+                    continue;
+                }
+                if (!products.Any(p => p.ProductId == productId))
+                {
+                    Console.WriteLine("Product not found! Please select from the available products.");
+                    continue;
+                }
 
                 Console.Write("Enter Quantity: ");
-                int quantity = int.Parse(Console.ReadLine());
+                if (!int.TryParse(Console.ReadLine(), out int quantity) || quantity <= 0)
+                {
+                    Console.WriteLine("Invalid quantity!");
+                    continue;
+                }
 
                 items.Add(new OrderItem
                 {
@@ -225,32 +274,40 @@ namespace PizzeriaAppTest
                     Quantity = quantity,
                     CreatedAt = DateTime.Now,
                     DeliveryAt = DateTime.Now.AddHours(1).AddMinutes(30),
-                    DeliveryAddress = string.IsNullOrWhiteSpace(address) ? "Default Address" : address
+                    DeliveryAddress = address
                 });
 
                 Console.Write("Add another item to this order? (y/n): ");
-                addMore = Console.ReadLine().ToLower();
+                addMore = Console.ReadLine()?.ToLower() ?? "n";
 
             } while (addMore == "y");
 
-            // Save order to file or memory
-            bool result = OrderItem.SaveOrder(items);
-            if (!result)
+            if (items.Any())
             {
-                Console.WriteLine("Invalid order. Please check the details and try again.");
-                Console.ReadKey();
-                return;
+                bool result = OrderItem.SaveOrder(items);// Save order to file or memory
+                if (!result)
+                {
+                    Console.WriteLine("Validation failed: One or more order items are invalid.");
+                    Console.ReadKey();
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("Order created successfully! Press any key to continue.");
+                    Console.ReadKey();
+                }
             }
             else
             {
-                Console.WriteLine("Order created successfully! Press any key to continue.");
-                Console.ReadKey();
+                Console.WriteLine("No items added to the order.");
             }
+
         }
         static void InitializeApp()
         {
             Console.WriteLine("Application starting!...");
             SeedData.Load();
+            Console.WriteLine("Application started!...");
         }
     }
 }
