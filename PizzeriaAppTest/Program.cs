@@ -3,7 +3,7 @@ using PizzeriaAppTest.Models;
 
 namespace PizzeriaAppTest
 {
-    internal class Program
+    internal static class Program
     {
         static void Main(string[] args)
         {
@@ -80,7 +80,7 @@ namespace PizzeriaAppTest
 
             Console.WriteLine("\n\nTotal Ingredients Required!...");
 
-            var allProductsIngredient = ProductIngredient.LoadProductIngredients(); // Read all products from file
+            var allProductsIngredient = ProductIngredient.LoadProductIngredients(); // Read all products ingredients from file
 
             var totalIngredients = ProductIngredient.CalculateTotalIngredients(allOrders, allProductsIngredient);
             foreach (var item in totalIngredients)
@@ -96,7 +96,7 @@ namespace PizzeriaAppTest
             Console.WriteLine("Total Ingredients Required!...");
 
             var allOrders = OrderItem.LoadOrders(); // Read all orders from file
-            var allProductsIngredient = ProductIngredient.LoadProductIngredients(); // Read all products from file
+            var allProductsIngredient = ProductIngredient.LoadProductIngredients(); // Read all products ingredients from file
 
             var totalIngredients = ProductIngredient.CalculateTotalIngredients(allOrders, allProductsIngredient);
             foreach (var item in totalIngredients)

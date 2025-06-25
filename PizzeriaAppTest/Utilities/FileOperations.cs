@@ -4,18 +4,18 @@ namespace PizzeriaAppTest.Utilities
 {
     public static class FileOperations
     {
-        static string AbsolutePath = AppDomain.CurrentDomain.BaseDirectory;
-        static string postFileName = "-Pizzeria";
-        public static string ProductFileConst = "Products";
-        public static string IngredientFileConst = "Ingredients";
-        public static string OrdersConst = "Orders";
-        public static string GetAbsoulteDataPath() => Path.Combine(AbsolutePath, "Data");
+        static readonly string AbsolutePath = AppDomain.CurrentDomain.BaseDirectory;
+        static readonly string postFileName = "-Pizzeria";
+        public const string ProductFileConst = "Products";
+        public const string IngredientFileConst = "Ingredients";
+        public const string OrdersConst = "Orders";
+        public static string GetAbsoluteDataPath() => Path.Combine(AbsolutePath, "Data");
         public static void ValidateDataIfNotExist()
         {
-            Directory.CreateDirectory(GetAbsoulteDataPath());
+            Directory.CreateDirectory(GetAbsoluteDataPath());
         }
-        public static bool IsFileExist(string fileName) => File.Exists($"{GetAbsoulteDataPath()}\\{fileName}{postFileName}.json");
-        public static string FilePath(string fileName) => $"{GetAbsoulteDataPath()}\\{fileName}{postFileName}.json";
+        public static bool IsFileExist(string fileName) => File.Exists($"{GetAbsoluteDataPath()}\\{fileName}{postFileName}.json");
+        public static string FilePath(string fileName) => $"{GetAbsoluteDataPath()}\\{fileName}{postFileName}.json";
         public static void InsertToJsonFile(string fileName, string? stringData = null)
         {
             ValidateDataIfNotExist();
